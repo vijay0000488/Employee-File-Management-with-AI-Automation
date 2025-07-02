@@ -57,25 +57,24 @@ graph TD
   B -->|Display| A
 ```
 ### 2. AI Analysis Flow
-
 ```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant Backend
-    participant PythonAI
-    participant Ollama
-
-    User->>Frontend: Submit Query (ID/Name/Skill + Question)
-    Frontend->>Backend: API Request
-    Backend->>PythonAI: If AI analysis needed, send text & question
-    PythonAI->>Ollama: POST /api/generate
-    Ollama-->>PythonAI: AI-generated response
-    PythonAI-->>Backend: Return analysis
-    Backend-->>Frontend: API Response
-    Frontend-->>User: Show AI results
+graph TD
+  A[User (UI)]
+  B[Frontend (HTML+JS)]
+  C[Spring Boot Backend]
+  D[Database]
+  E[File System]
+  F[AI_Model.py (Python)]
+  G[Ollama API]
+  A -->|Enter Employee ID/Name or Skill| B
+  B -->|REST API| C
+  C -->|Fetch Employee Data| D
+  C -->|Fetch/Extract Resume| E
+  C -->|Analyze with AI| F
+  F -->|Call Ollama LLM| G
+  C -->|Return Results| B
+  B -->|Display| A
 ```
-
 ---
 
 ## 🛠️ Main Functionalities
