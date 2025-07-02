@@ -38,7 +38,6 @@ A full-stack project designed to automate employee file management, resume analy
 ## 💡 System Flow
 
 ### 1. User Flow Diagram
-
 ```mermaid
 graph TD
   A[User (UI)]
