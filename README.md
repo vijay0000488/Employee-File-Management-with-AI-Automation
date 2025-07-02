@@ -38,21 +38,16 @@ A full-stack project designed to automate employee file management, resume analy
 ## 💡 System Flow
 
 ### 1. User Flow Diagram
+### 1. User Flow Diagram
+
 ```mermaid
 graph TD
-  A[User (UI)]
-  B[Frontend (HTML+JS)]
-  C[Spring Boot Backend]
-  D[Database]
-  E[File System]
-  F[AI_Model.py (Python)]
-  G[Ollama API]
-  A -->|Enter Employee ID/Name or Skill| B
-  B -->|REST API| C
-  C -->|Fetch Employee Data| D
-  C -->|Fetch/Extract Resume| E
-  C -->|Analyze with AI| F
-  F -->|Call Ollama LLM| G
+  A[User (UI)] -->|Enter Employee ID/Name or Skill| B[Frontend (HTML+JS)]
+  B -->|REST API| C[Spring Boot Backend]
+  C -->|Fetch Employee Data| D[Database]
+  C -->|Fetch/Extract Resume| E[File System]
+  C -->|Analyze with AI| F[AI_Model.py (Python)]
+  F -->|Call Ollama LLM| G[Ollama API]
   C -->|Return Results| B
   B -->|Display| A
 ```
