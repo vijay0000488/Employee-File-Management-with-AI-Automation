@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Employee Query Test</title>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 40px auto; }
+    .row { margin-bottom: 12px; }
+    .label { width: 120px; display: inline-block; }
+    .response { background: #f4f4f4; padding: 10px; border-radius: 4px; min-height: 60px; margin-top: 12px; white-space: pre-wrap; }
+    button { padding: 6px 18px; }
+  </style>
+</head>
+<body>
+  <h2>AI Employee Query Test</h2>
+
+  <div class="row">
+    <label class="label">Employee ID:</label>
+    <input type="number" id="employeeId" placeholder="e.g. 2">
+  </div>
+  <div class="row">
+    <label class="label">Employee Name:</label>
+    <input type="text" id="employeeName" placeholder="e.g. John Doe">
+  </div>
+  <div class="row">
+    <label class="label">Your Query:</label>
+    <input type="text" id="userQuery" value="What are his skills?" style="width: 250px;">
+  </div>
+  <button id="askBtn">Ask AI</button>
+
+  <hr>
+
+  <div class="row">
+    <label class="label">Search by Skill:</label>
+    <input type="text" id="skillSearch" placeholder="e.g. Python">
+    <button id="searchSkillBtn">Find Employees</button>
+  </div>
+
+  <div class="response" id="result">AI Response will appear here.</div>
+  <div class="response" id="skillResults" style="display:none"></div>
+
+  <script>
+    const askBtn = document.getElementById('askBtn');
+    const employeeIdInput = document.getElementById('employeeId');
+    const employeeNameInput = document.getElementById('employeeName');
+    const queryInput = document.getElementById('userQuery');
+    const resultDiv = document.getElementById('result');
+    const API_BASE = 'http://localhost:8080';
+
+    askBtn.onclick = async function() {
+      const employeeId = employeeIdInput.value.trim();
+      const employeeName = employeeNameInput.value.trim();
+      const userQuery = queryInput.value.trim();
+
+      if (!userQuery) {
+        resultDiv.textContent = "Please enter a query.";
+        return;
+      }
+
+      resultDiv.textContent = "Asking AI...";
+
+      // Check if the query is about role/position
+      const queryLower = userQuery.toLowerCase();
+      if ((queryLower.includes('role') || queryLower.includes('position')) && employeeId) {
+        // Fetch from /api/employees/{id} and display formatted role
+        try {
+          const res = await fetch(`${API_BASE}/api/employees/${employeeId}`);
+          if (!res.ok) {
+            const err = await res.text();
+            resultDiv.textContent = 'Error: ' + err;
+          } else {
+            const emp = await res.json();
+            if (emp.role) {
+              resultDiv.textContent = `He is a ${emp.role}`;
+            } else {
+              resultDiv.textContent = "Role not found for this employee.";
+            }
+          }
+        } catch (e) {
+          resultDiv.textContent = 'Error: ' + e.message;
+        }
+        return;
+      }
+
+      // Otherwise use the AI endpoint
+      let url = "";
+      let options = {
+        method: 'POST'
+      };
+
+      if (employeeId) {
+        url = `${API_BASE}/api/files/analyze/employee/${employeeId}?userQuery=${encodeURIComponent(userQuery)}`;
+      } else if (employeeName) {
+        url = `${API_BASE}/api/files/analyze/employee/by-name?employeeName=${encodeURIComponent(employeeName)}&userQuery=${encodeURIComponent(userQuery)}`;
+      } else {
+        url = `${API_BASE}/api/files/chat?userQuery=${encodeURIComponent(userQuery)}`;
+      }
+
+      try {
+        const res = await fetch(url, options);
+        if (!res.ok) {
+          const err = await res.text();
+          resultDiv.textContent = 'Error: ' + err;
+        } else {
+          const text = await res.text();
+          resultDiv.textContent = text;
+        }
+      } catch (e) {
+        resultDiv.textContent = 'Error: ' + e.message;
+      }
+    };
+
+    const skillInput = document.getElementById('skillSearch');
+    const skillBtn = document.getElementById('searchSkillBtn');
+    const skillResultsDiv = document.getElementById('skillResults');
+
+    skillBtn.onclick = async function() {
+      const skill = skillInput.value.trim();
+      skillResultsDiv.style.display = 'block';
+      skillResultsDiv.textContent = "Searching by skill...";
+      if (!skill) {
+        skillResultsDiv.textContent = "Please enter a skill.";
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/employees/search-by-skill?skill=${encodeURIComponent(skill)}`);
+        if (!res.ok) {
+          skillResultsDiv.textContent = 'Error: ' + await res.text();
+          return;
+        }
+        const data = await res.json();
+        if (data.length === 0) {
+          skillResultsDiv.textContent = "No employees found with that skill.";
+        } else {
+          skillResultsDiv.innerHTML = '<b>Employees with "' + skill + '" skill:</b><ul>' +
+            data.map(emp => `<li>${emp.firstName} ${emp.lastName} (${emp.email})</li>`).join('') +
+            '</ul>';
+        }
+      } catch (e) {
+        skillResultsDiv.textContent = 'Error: ' + e.message;
+      }
+    };
+  </script>
+</body>
+</html>
